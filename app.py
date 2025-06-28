@@ -34,7 +34,7 @@ disease_options = [
 ]
 
 # Tabs
-tabs = st.tabs(["🧠 Policy Recommendation", "🤝 Customer Support"])
+tabs = st.tabs(["🧠 Policy Recommendation", "🤝 Customer Support","💸 Premium Calculator"])
 
 # -----------------------------------------------
 # Tab 1: Policy Recommendation
@@ -155,3 +155,79 @@ with tabs[1]:
                     st.error(f"Error: {e}")
         else:
             st.warning("Please type a question to proceed.")
+
+
+
+with tabs[2]:
+    st.markdown("## 💸 Insurance Premium Estimator")
+
+    insurance_plan = st.selectbox("Select Insurance Plan Type", insurance_types)
+    age = st.slider("Your Age", 18, 80)
+    income = st.number_input("Annual Income (₹)", min_value=10000, step=1000)
+    coverage = st.number_input("Desired Coverage Amount (₹)", min_value=100000, step=10000)
+    smoker = st.radio("Are you a smoker?", ["Yes", "No"])
+    driving_record = st.selectbox("Driving Record", ["Clean", "Minor Offenses", "Major Violations"])
+
+    if st.button("🧮 Estimate Premium"):
+        # Simple Risk Scoring Logic
+        base_score = 30
+        if age >= 50:
+            base_score += 20
+        elif age >= 35:
+            base_score += 10
+
+        if income < 300000:
+            base_score += 10
+
+        if smoker == "Yes":
+            base_score += 25
+
+        if driving_record == "Major Violations":
+            base_score += 15
+        elif driving_record == "Minor Offenses":
+            base_score += 5
+
+        risk_score = min(base_score, 100)  # Cap at 100
+
+        # Base premium calculation logic (₹)
+        annual_base = 8000
+        multiplier = 1 + (risk_score / 100)
+
+        if insurance_plan in ["Term Life Insurance", "Group Life Insurance"]:
+            annual_base += 2000
+        elif insurance_plan == "Critical Illness Cover":
+            annual_base += 4000
+        elif insurance_plan == "Family Floater Plan":
+            annual_base += 5000
+
+        estimated_annual_premium = annual_base * multiplier
+        estimated_monthly = estimated_annual_premium / 12
+
+        st.success(f"✅ Estimated Monthly Premium: ₹{estimated_monthly:.2f}")
+        st.info(f"🧮 Calculated Risk Score: {risk_score}/100")
+
+        # Gemini explanation
+        from gemini_llm import query_gemini  # Ensure this is imported already
+
+        gemini_prompt = f"""
+A user is estimating insurance premium for a {insurance_plan}.
+
+Details:
+- Age: {age}
+- Income: ₹{income}
+- Smoker: {smoker}
+- Driving Record: {driving_record}
+- Risk Score: {risk_score}
+- Desired Coverage: ₹{coverage}
+
+Given these factors, the estimated monthly premium is ₹{estimated_monthly:.2f}.
+Explain in simple language how this was calculated and what influences the price.
+"""
+
+        try:
+            with st.spinner("🤖 Generating AI explanation..."):
+                explanation = query_gemini(gemini_prompt)
+            st.markdown("### 🧠 Gemini Explanation:")
+            st.markdown(explanation)
+        except Exception as e:
+            st.error(f"Gemini Error: {e}")
