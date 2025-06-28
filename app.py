@@ -1,10 +1,7 @@
-# File: app.py
-
 import streamlit as st
 import pandas as pd
 import re
 import markdown
-import streamlit.components.v1 as components
 
 from serp_search import get_policy_recommendations_from_serpapi
 from utils import build_prompt_with_search
@@ -106,7 +103,7 @@ with tabs[0]:
                     recommendation = query_gemini(prompt)
                     st.success("✅ Recommendation ready!")
 
-                    # Display recommendations with card styling
+                    # Display recommendations with readable cards
                     try:
                         underwriting_section, policy_section = recommendation.split("### 🏆 Top 7 Recommended Policies:")
                         st.markdown(underwriting_section)
@@ -114,24 +111,26 @@ with tabs[0]:
                         policies = policy_section.strip().split("\n\n")
                         for idx, p in enumerate(policies, 1):
                             if p.strip():
-                                # Clean existing numbers
                                 p_cleaned = re.sub(r"^\d+\.\s*", "", p.strip())
-                                numbered_policy = f"**{idx}.** {p_cleaned}"
-                                html_content = markdown.markdown(numbered_policy, extensions=["extra"])
+                                html_content = markdown.markdown(f"**{idx}.** {p_cleaned}", extensions=["extra"])
 
-                                html_card = f"""
-                                <div style='
-                                    border: 1px solid #ddd;
-                                    border-radius: 10px;
-                                    padding: 15px;
-                                    margin-bottom: 15px;
-                                    background-color: #f5f9ff;
-                                    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                                '>
-                                    {html_content}
-                                </div>
-                                """
-                                components.html(html_card, height=280)
+                                st.markdown(
+                                    f"""
+                                    <div style='
+                                        border: 1px solid #ddd;
+                                        border-radius: 10px;
+                                        padding: 15px;
+                                        margin-bottom: 15px;
+                                        background-color: #f5f9ff;
+                                        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                                        color: #1a202c;
+                                        font-size: 15px;
+                                    '>
+                                        {html_content}
+                                    </div>
+                                    """,
+                                    unsafe_allow_html=True
+                                )
                     except ValueError:
                         st.markdown(recommendation)
 
