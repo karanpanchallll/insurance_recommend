@@ -1,5 +1,6 @@
 streamlit
 pandas
+python-dotenv
 markdown
 google-generativeai
 requests
